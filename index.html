@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hauptmenü</title>
+    <style>
+    #character {
+    position: absolute;
+    bottom: 350px;
+    left: 250px;
+    height: 200px;  
+    width: 200px;
+    object-fit: cover;
+    object-position: 0px;
+}
+   body {
+    text-align: center;
+    background-image: url('Battleground1.png');
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+   }
+
+   #skelett{
+    color: aliceblue;
+     position: absolute;
+    bottom: 350px;
+    left: 250px;
+    height: 200px;  
+    width: 200px;
+    object-fit: cover;
+    object-position: 0px;   
+    font-size: x-large;
+   }
+
+   #pflanze {
+    color: aliceblue;
+           position: absolute;
+    bottom: 350px;
+    left: 900px;
+    height: 200px;  
+    width: 200px;
+    object-fit: cover;
+    object-position: 0px;
+     font-size: x-large;
+   }
+
+   #pflanze:hover {
+    color: aqua;
+   }
+   #skelett:hover {
+    color: aqua;
+   }
+
+   #gegner {
+       position: absolute;
+    bottom: 350px;
+    left: 900px;
+    height: 200px;  
+    width: 200px;
+    object-fit: cover;
+    object-position: 0px;
+}
+
+
+   a {
+    text-decoration: none;
+    color: black;
+    font-size: 20px;
+    background-color: blue;
+   }
+
+   a:hover {
+       color: grey;
+       background-color: aqua;
+   }
+    </style>
+
+
+</head>
+<body>
+    <h1>Choose your Character</h1>
+<a href="skelett.html"><p id="skelett">Boneblade</p></a> <a href="pflanze.html"><p id="pflanze">Thornshade</p></a>
+    <a href="skelett.html"><img id="character" src="Run.png"></a> <a href="pflanze.html"><img id="gegner" src="Walk.png" alt=""></a>
+    
+    <a href="infos.html">Informations</a>
+</body>
+</html>

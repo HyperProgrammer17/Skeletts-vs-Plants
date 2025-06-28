@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+    <style>
+        body {
+  overflow: hidden;
+}
+
+#h1 {
+      position: fixed;
+  top: 200px;
+  left: 550px;
+  color: rgb(84, 0, 0);
+  font-size: 100px;
+  z-index: 999;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+#gameover-button {
+  position: absolute;
+  bottom: 400px;
+  left: 700px;
+  z-index: 1000;
+  padding: 10px;
+  background: rgba(105, 0, 0, 0.8);
+  border: 1px solid rgb(35, 35, 35);
+  font-weight: bold;
+}
+
+#gameover-button:hover {
+  background: rgba(65, 1, 1, 0.8);
+  border: 1px solid rgb(0, 0, 0);
+}
+
+#background {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+#scoreboard {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  color: white;
+  font-size: 20px;
+  z-index: 999;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+}
+
+
+#character {
+    position: absolute;
+    bottom: 350px;
+    left: 200px;
+    height: 200px;  
+    width: 200px;
+    object-fit: cover;
+    object-position: 0px;
+}
+
+#gegner {
+   position: absolute;
+   bottom: 350;
+   right: 50px;
+   height: 200px;  
+   width: 200px;
+   object-fit: cover;
+   object-position: 0px;
+   transform: scaleX(-1);
+}
+
+#button-hitbox {
+  position: absolute;
+  top: 10px;
+  right: 40px;
+  z-index: 1000;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid black;
+  font-weight: bold;
+}
+
+#button-not-hitbox {
+  position: absolute;
+  top: 10px;
+  right: 40px;
+  z-index: 1000;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid black;
+  font-weight: bold;
+}
+    </style>
+
+    <script>
+   let x = 0;
+let gegnerX = 0;
+let left = 200;
+let down = 350;
+let leftArrow = false;
+let rightArrow = false;
+let upArrow = false;
+let downArrow = false;
+let attack = false;
+let attacking = false;
+let gegnerLeft = window.innerWidth; 
+let gegnerBottom = getRandomY();
+let gameOver = false;
+let gegnerHit = false;
+let score = 0;
+let highscore = localStorage.getItem('highscore') || 0;
+let characterRun = new Audio('gehen-mit-harten-absatzen-82955.mp3');
+let gegnerRun = new Audio('walking-sound-effect-272246.mp3');
+let characterTot = new Audio('086127_ouch-screemwav-80051.mp3');
+let gegnerTot = new Audio('hit-flesh-02-266309.mp3');
+let messer = new Audio('knife-demo-309903.mp3');
+
+
+document.onkeydown = checkKey;
+document.onkeyup = unCheckKey;
+
+let spawnInterval = setInterval(spawnGegner, 4000);
+
+
+function checkKey(e) {
+    e = e || window.event;
+
+    if (e.keyCode == '38') {
+        upArrow = true;
+    }
+    else if (e.keyCode == '40') {
+        downArrow = true;
+    }
+    else if (e.keyCode == '37') {
+        leftArrow = true;
+
+    }
+    else if (e.keyCode == '39') {
+        rightArrow = true;
+    } else if (e.keyCode == '32') { // 'd' Taste
+        if (!attacking) {
+            attack = true;
+            attacking = true;
+            messer.currentTime = 0;
+            messer.play();
+            x = 0; // Setze die Frame für Attack auf 0
+            character.src = "Attack_3.png"; // Wechsle zum Angriffsbild
+            setTimeout(() => {
+                character.src = "Run.png"; // Zurück zur Laufanimation
+                attacking = false; // Angriff beendet
+            }, 700); // Setze die Zeit passend zu der Anzahl der Frames (4 Frames)
+        }
+    }
+}
+
+function unCheckKey(e) {
+
+    e = e || window.event;
+
+    characterRun.pause();
+
+    if (e.keyCode == '38') {
+        down+=5;
+        upArrow = false;
+    }
+    else if (e.keyCode == '40') {
+       down-=5;
+       downArrow = false;
+    }
+    else if (e.keyCode == '37') {
+        left-=5; 
+        leftArrow = false;
+    }
+    else if (e.keyCode == '39') {
+       left+=5;
+       rightArrow = false;
+    }
+
+}
+
+
+setInterval(updateGame, 50);
+let gegnerMovementInterval = setInterval(moveGegner, 10);
+setInterval(checkCollision, 15);
+setInterval(updateScore, 30);
+
+function checkCollision() {
+    if (gameOver) return;
+
+    // Überprüfen, ob Orc und Berserk kollidieren
+    if (isCollision('character', 'gegner')) {
+        if (attacking && !gegnerHit == true) {
+            gegnerHit = true; 
+            gegnerHit = true;
+            score += 10; // +10 Punkte für einen Treffer
+            updateScore();
+            gegnerTot.currentTime = 0;
+            gegnerTot.play();
+            gegnerRun.pause();          // Berserk stirbt
+            clearInterval(gegnerMovementInterval);
+            gegner.src = "Dead.png";// Wechsle zu Berserk Todes-Animation
+            gegnerX = 0; 
+            playGegnerDeathAnimation();
+            setTimeout(function(){
+                spawnGegner();
+                gegner.src = "Walk.png";
+               gegnerMovementInterval = setInterval(moveGegner, 10);
+                gegnerHit = false;
+            }, 4000); // Todesanimation abspielen
+        } else if (!gegnerHit == true) {
+            // Orc stirbt
+            gameOver = true;
+
+             if (score > highscore) {
+        highscore = score;
+        localStorage.setItem('highscore', highscore);
+    }
+            updateScore()
+            characterTot.currentTime = 0;
+            characterTot.play();
+            characterRun.pause();
+            gegnerRun.pause();
+            character.src = "Dead1.png"; // Wechsle zur Todesanimation für den Orc
+            clearInterval(gegnerMovementInterval); // Berserk stoppt ebenfalls, wenn das Spiel vorbei ist
+            setTimeout(moveCharacter, 15); 
+            setTimeout(moveCharacter, 30);
+            setTimeout(moveCharacter, 45);
+            setTimeout(() => {
+                 // Spielende Nachricht
+            }, 200); // Zeit für das Abspielen der Todesanimation
+        }
+    }
+    if(gameOver) {
+        characterRun.pause();
+        gegnerRun.pause();
+        document.getElementById('gameover-button').hidden = false;
+        document.getElementById('h1').hidden = false;
+        document.getElementById('character').hidden = true;
+        document.getElementById('gegner').hidden = true;
+    }
+}
+
+
+
+function isCollision(img1Id, img2Id) {
+    const img1 = document.getElementById(img1Id).getBoundingClientRect();
+    const img2 = document.getElementById(img2Id).getBoundingClientRect();
+
+    return !(img1.right < img2.left || 
+             img1.left > img2.right || 
+             img1.bottom < img2.top || 
+             img1.top > img2.bottom);
+}
+
+// Funktion zur Abspielung der Berserk-Todesanimation
+function playGegnerDeathAnimation() {
+    let deathAnimationInterval = setInterval(function() {
+        gegner.style.objectPosition = `-${gegnerX * 200}px`; // Setze die Position des Bildes basierend auf dem Frame
+        gegnerX++;
+
+
+
+        if (gegnerX == 2) { // 5 Frames für die Berserk-Todesanimation
+            clearInterval(deathAnimationInterval); // Beende die Animation nach dem letzten Frame
+ // Zeit für das letzte Frame der Todesanimation
+        }
+    }, 300); // Geschwindigkeit der Todesanimation (angepasst für 5 Frames)
+}
+
+
+function updateGame() {
+if (attacking) {
+        moveAttack(); // Animation des Angriffs
+    } else {
+        if (upArrow) {
+            down += 5;
+        }
+
+        if (downArrow) {
+            down -= 5;
+        }
+
+        if (leftArrow) {
+            left -= 5;
+        }
+
+        if (rightArrow) {
+            left += 5;
+        }
+
+        if (upArrow || downArrow || leftArrow || rightArrow) {
+            moveCharacter();
+            characterRun.play();
+        }
+    }
+       
+        character.style.bottom = `${down}px`
+        character.style.left = `${left}px`;
+}
+
+function moveAttack() {
+    character.style.objectPosition = `-${x * 200}px`;
+    x++;
+
+    if (x == 7) {
+        x = 0;
+    }
+}
+
+function moveCharacter() {
+    character.style.objectPosition = `-${x*200}px`;
+    x++;
+
+    if (x == 6) {
+        x = 0
+    }
+}
+
+function spawnGegner() {
+    gegnerLeft = window.innerWidth; 
+    gegnerBottom = getRandomY();
+    gegner.style.left = `${gegnerLeft}px`;
+    gegner.style.bottom = `${gegnerBottom}px`;
+    gegnerX = 0;
+}
+
+function moveGegner() {
+    gegnerLeft -= 10;
+    gegnerRun.play();
+    gegner.style.left = `${gegnerLeft}px`;
+    gegner.style.objectPosition = `-${gegnerX * 200}px`; 
+    gegnerX++;
+
+    if (gegnerX == 6) { 
+        gegnerX = 0;
+    }
+}
+
+function updateScore() {
+        document.getElementById('score').textContent = score;
+    document.getElementById('highscore').textContent = highscore;
+}
+
+
+function getRandomY() {
+    return Math.floor(Math.random() * (window.innerHeight - 300)) + 100;
+}
+
+function showHitbox() {
+    character.style = 'border: 5px solid black;';
+    gegner.style = 'border: 5px solid black;';
+    document.getElementById('button-hitbox').hidden = true;
+    document.getElementById('button-not-hitbox').hidden = false;
+}
+
+function noHitbox() {
+    character.style = 'border: none;';
+    gegner.style = 'border: none;';
+    document.getElementById('button-hitbox').hidden = false;
+    document.getElementById('button-not-hitbox').hidden = true;
+}
+
+    </script>
+</head>
+<body>
+    <div id="scoreboard">
+  <p>Score: <span id="score">0</span></p>
+  <p>Highscore: <span id="highscore">0</span></p>
+</div>
+
+<button id="button-hitbox" onclick="showHitbox()">show hitbox</button>
+<button hidden id="button-not-hitbox" onclick="noHitbox()">don't show hitbox</button>
+<h1 hidden id="h1">GAME OVER</h1>
+<a href="index.html"><button hidden id="gameover-button">Menu</button></a>
+    <img id="background" src="Battleground1.png" alt="">
+
+    <img id="character" src="Run.png" alt="">
+
+    <img id="gegner" src="Walk.png" alt="">
+
+    
+</body>
+</html>
